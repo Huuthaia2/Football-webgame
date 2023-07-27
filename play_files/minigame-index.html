@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<!-- saved from url=(0157)https://football.apps.minigame.vip/minigame-index.html?mn_config=https://indigo.minigame.vip/v1/api/channel/indigo/main/game/football/config&ts=1690433421821 -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+
+  <title>Cocos Creator | football</title>
+
+  <!--http://www.html5rocks.com/en/mobile/mobifying/-->
+  <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1, minimum-scale=1,maximum-scale=1">
+
+  <!--https://developer.apple.com/library/safari/documentation/AppleApplications/Reference/SafariHTMLRef/Articles/MetaTags.html-->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="format-detection" content="telephone=no">
+
+  <!-- force webkit on 360 -->
+  <meta name="renderer" content="webkit">
+  <meta name="force-rendering" content="webkit">
+  <!-- force edge on IE -->
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="msapplication-tap-highlight" content="no">
+
+  <!-- force full screen on some browser -->
+  <meta name="full-screen" content="yes">
+  <meta name="x5-fullscreen" content="true">
+  <meta name="360-fullscreen" content="true">
+
+  <!-- force screen orientation on some browser -->
+  <meta name="screen-orientation" content="">
+  <meta name="x5-orientation" content="">
+
+  <!--fix fireball/issues/3568 -->
+  <!--<meta name="browsermode" content="application">-->
+  <meta name="x5-page-mode" content="app">
+
+  <!--<link rel="apple-touch-icon" href=".png" />-->
+  <!--<link rel="apple-touch-icon-precomposed" href=".png" />-->
+
+  <link rel="stylesheet" type="text/css" href="./style-mobile.css">
+  <link rel="icon" href="https://football.apps.minigame.vip/favicon.ico">
+<script type="text/javascript" async="" src="./analytics.js.tải xuống"></script><script type="text/javascript" async="" src="./js(1)"></script><script src="./minigame-sdk.js.tải xuống"></script><script src="./js(2)" async=""></script></head>
+<body>
+<div id="Cocos2dGameContainer" style="transform: rotate(0deg); width: 438px; height: 842px; margin: 0px; padding: 0px;"><canvas id="GameCanvas" oncontextmenu="event.preventDefault()" tabindex="99" class="gameCanvas" width="438" height="842" style="width: 438px; height: 842px;"></canvas></div>
+<div id="splash" style="display: none;">
+  <div class="progress-bar stripes">
+    <span style="width: 100%;"></span>
+  </div>
+</div>
+
+<script src="./settings.js.tải xuống" charset="utf-8"></script>
+
+<script src="./main.js.tải xuống" charset="utf-8"></script>
+
+<script type="text/javascript">
+  // 自动加载进度 玩家自增长 显示加载进度
+  var loadProgress = 1;
+  // 真实加载进度
+  var loadRealProgress = 0;
+  // 玩家唯一编号
+  var facebookPlayerid = 0;
+  // 加载完成
+  var isLoadComplete = false;
+  // 心跳进度条唯一编号
+  var updateProgress = null;
+  // 是否初始化FaceBookSDK
+  var isInitFaceBookSDK = false;
+  // 是否加载了游戏文件
+  var isLoadBody = false;
+  // 是否加载了游戏主文件
+  var isLoadMainJS = false;
+  // 自动增长心跳
+  var upateLoadProgress = function()
+  {
+    if(loadProgress < 26)
+    {
+      loadProgress = loadProgress + 1;
+    }
+    else if(loadProgress < 27)
+    {
+      loadProgress = loadProgress + 0.05;
+    }
+    else if(loadProgress < 40)
+    {
+      loadProgress = loadProgress + 0.25;
+    }
+    else if(loadProgress < 41)
+    {
+      loadProgress = loadProgress + 0.05;
+    }
+    else if(loadProgress < 50)
+    {
+      loadProgress = loadProgress + 0.15;
+    }
+    else
+    {
+      isLoadComplete = true;
+    }
+    if(loadProgress >= 50){
+      isLoadComplete = true;
+    }
+
+    var displayProgress = Math.ceil(loadProgress);
+    if(displayProgress > 99)
+    {
+      displayProgress = 99;
+    }
+    setLoadProgress(displayProgress);
+  }
+  var setLoadProgress = function(value){
+    if(loadRealProgress < value){
+      loadRealProgress = value;
+      FBInstant.setLoadingProgress(loadRealProgress);
+    }
+  }
+  var loadJs = function(url, cb)
+  {
+    var script = document.createElement("script");
+    script.async = false;
+    script.src = url;
+    document.body.appendChild(script);
+    if(cb != null)
+    {
+      script.onload = cb;
+    }
+  }
+  var facebookPlayerid = "";
+  loadJs("https://sdk.minigame.vip/js/1.1/minigame.js",
+          function(){
+
+            minigame.initializeAsync().then(function(){
+              minigame.startGameAsync().then(() => {
+                facebookPlayerid = FBInstant.player.getID();
+                console.log("拉取到用户登录信息，FBInstant.initializeAsync回调。玩家 playerid=",facebookPlayerid);
+                loadMainJS();
+              })
+              .catch(error => {
+                console.error("minigame startGameAsync error", err);
+              });              
+            })
+            .catch(function(err){
+              console.error("minigame initializeAsync error", err);
+            });
+            // 让进度条变成1%
+            setLoadProgress(1);
+
+            if(typeof setInterval != "undefined")            {
+              updateProgress = setInterval(
+                      function()                      {
+                        if(isLoadComplete == true)                        {
+                          if(updateProgress != null)                          {
+                            console.log("移除",facebookPlayerid);
+                            clearInterval(updateProgress);
+                            updateProgress = null;
+                          }
+                          return;
+                        }
+
+                        if(isLoadComplete == false)                        {
+                          upateLoadProgress();
+                        }
+                      }, 100);
+            }
+
+          });
+
+  function loadMainJS() {
+    // open web debugger console
+    if (typeof VConsole !== 'undefined') {
+      window.vConsole = new VConsole();
+    }
+
+    var debug = window._CCSettings.debug;
+    var splash = document.getElementById('splash');
+    splash.style.display = 'block';
+
+    function loadScript (moduleName, cb) {
+      function scriptLoaded () {
+        document.body.removeChild(domScript);
+        domScript.removeEventListener('load', scriptLoaded, false);
+        cb && cb();
+      };
+      var domScript = document.createElement('script');
+      domScript.async = true;
+      domScript.src = moduleName;
+      domScript.addEventListener('load', scriptLoaded, false);
+      document.body.appendChild(domScript);
+    }
+
+    loadScript(debug ? 'cocos2d-js.js' : 'cocos2d-js-min.js', function () {
+      if (CC_PHYSICS_BUILTIN || CC_PHYSICS_CANNON) {
+        loadScript(debug ? 'physics.js' : 'physics-min.js', window.boot);
+      }
+      else {
+        window.boot();
+      }
+    });
+  }
+</script><script src="./minigame.js.tải xuống"></script>
+
+
+<style type="text/css">@font-face { font-family:e820-sans-ultra_0_LABEL; src:url('assets/resources/native/90/90dc9890-2c63-4063-bd10-014be3c515b3/e820-sans-ultra_0.ttf');}</style><div style="font-family: e820-sans-ultra_0_LABEL; position: absolute; left: -100px; top: -100px;">.</div></body></html>
